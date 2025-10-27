@@ -81,7 +81,7 @@ class TokenManager:
                 self.auth_url,
                 headers=headers,
                 data=urllib.parse.urlencode(params),
-                verify="certs/tgt-ca-bundle.crt",
+                verify="tgt-ca-bundle.crt",
                 timeout=10,
             )
             resp.raise_for_status()
