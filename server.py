@@ -2,7 +2,6 @@
 import json
 import requests
 from flask import Flask, render_template, request, jsonify, session
-import tgt_certs
 from token_manager import get_token
 import uuid
 import random
@@ -16,10 +15,6 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_KEY')
-
-# Trust Target's internal CA bundle
-tgt_certs.setup_env()
-tgt_certs.setup_requests()
 
 # API base urls
 llm_base_url = os.getenv('LLM_BASE_URL')
