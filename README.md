@@ -1,57 +1,37 @@
-# ThinkTank-Python-Template
-Python setup to get you started experimenting with ThinkTank and Target GenAI solutions
+# Agentic Shopping POC
+A Flask web application that uses OpenAI's Chat Completion API for conversational AI interactions with environmental impact tracking.
 
+## Setup
 
-export UV_EXTRA_INDEX_URL="https://binrepo.target.com/artifactory/api/pypi/pypi-remote/simple"
+### 1. Install Dependencies
 
+```bash
+pip install -r requirements.txt
+```
 
-# Using UV
+### 2. Environment Variables
 
-1. **Install uv (one-time):**
+Create a `.env` file in the project root with the following variables:
 
-   ~~~bash
-   pipx install uv
-   ~~~
+```bash
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
 
-2. **Create the environment from `uv.lock`:**
+# Flask Configuration
+FLASK_KEY=your_flask_secret_key_here
 
-   ~~~bash
-   uv sync
-   ~~~
+# Database Configuration (optional)
+DATABASE_URL=your_database_url_here
+```
 
-3. **Run anything inside the env:**
+You can use `.env.example` as a template.
 
-   ~~~bash
-   uv run python -m your_app
-   ~~~
+### 3. Run the Application
 
-4. **Add / remove a dependency (auto-locks + installs):**
+#### Development
+```bash
+python server.py
+```
 
-   ~~~bash
-   uv add <package>
-   uv remove <package>
-   ~~~
-
-5. **Change Python version:**
-
-   ~~~bash
-   uv python install 3.13     # fetch interpreter once
-   uv python pin 3.13         # writes .python-version
-   uv sync                    # rebuilds .venv on 3.13
-   ~~~
-
-6. **VS Code** picks up the `.venv/` folder automatically.  
-   If it doesn’t: open the Command Palette → **“Python: Select Interpreter”** and choose the interpreter ending in `.venv/bin/python` (macOS/Linux) or `.venv\Scripts\python.exe` (Windows).
-
-
-> **Ignore** `.venv/`—every collaborator just runs `uv sync` to reproduce the exact environment.
-
-
-
-
-
-# Run the refresh after you save
-tgt_cert_refresh
-
-
-gunicorn -b 0.0.0.0:8000 server:app   
+#### Production (Render/Heroku)
+```bash

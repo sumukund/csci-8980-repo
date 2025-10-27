@@ -2,7 +2,7 @@
 import json
 import requests
 from flask import Flask, render_template, request, jsonify, session
-from token_manager import get_token
+from token_manager import get_openai_client
 import uuid
 import random
 import os
@@ -16,9 +16,8 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_KEY')
 
-# API base urls
-llm_base_url = os.getenv('LLM_BASE_URL')
-bearer_token = get_token()
+# Initialize OpenAI client
+openai_client = get_openai_client()
 
 # Store active trackers for each session
 active_trackers = {}
@@ -207,47 +206,29 @@ def chat():
         # Add user message
         messages.append({"role": "user", "content": user_message})
         
-        # Prepare API request
-        chat_headers = {
-            "Authorization": f"Bearer {bearer_token}",
-            "Content-Type": "application/json",
-            "X-TGT-APPLICATION": "gxcaiugcfrontend",
-            "x-api-key": "YOUR DEVELOPER PORTAL API KEY",
-        }
-        
-        chat_data = {
-            "model": "gpt-4o",
-            "temperature": 1,
-            "max_new_tokens": 4095,
-            "top_p": 1,
-            "frequency_penalty": 0.5,
-            "presence_penalty": 0,
-            "timeout": 120,
-            "stream": False,
-            "messages": messages
-        }
-        
-        # Send request to API
-        response = requests.post(
-            f"{llm_base_url}/chat/completions",
-            headers=chat_headers,
-            json=chat_data,
+        # Call OpenAI API
+        chat_response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            temperature=1,
+            max_tokens=4095,
+            top_p=1,
+            frequency_penalty=0.5,
+            presence_penalty=0,
+            stream=False
         )
-        response.raise_for_status()
-        
-        chat_response = response.json()
         
         # Extract assistant's reply
-        assistant_reply = chat_response.get("choices", [{}])[0].get("message", {}).get("content", "No response")
+        assistant_reply = chat_response.choices[0].message.content or "No response"
         
         # Extract token usage if available
-        usage = chat_response.get("usage", {})
-        input_tokens = usage.get("prompt_tokens", 0)
-        output_tokens = usage.get("completion_tokens", 0)
+        usage = chat_response.usage
+        input_tokens = usage.prompt_tokens if usage else 0
+        output_tokens = usage.completion_tokens if usage else 0
         
         # Estimate environmental impact
         impact = estimate_environmental_impact(
-            model_name=chat_data.get("model", "gpt-4o"),
+            model_name="gpt-4o",
             input_tokens=input_tokens,
             output_tokens=output_tokens
         )
