@@ -1,0 +1,45 @@
+[project]
+authors = [
+    {name = "Sudarsna Mukund", email = "sudarsna.mukund@target.com"},
+]
+requires-python = "<4.0,>=3.12"
+dependencies = [
+    "fastapi>=0.115.13",
+    "python-dotenv>=1.1.1",
+    "requests>=2.32.4",
+    "tgt-certs>=2025.1.0",
+    "codecarbon",
+    "flask>=3.1.2",
+    "dotenv>=0.9.9",
+    "ecologits>=0.8.2",
+    "psycopg2>=2.9.11",
+    "gunicorn>=23.0.0",
+]
+name = "agentic-shopping-poc"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+
+
+[tool.pdm]
+distribution = false
+
+[[tool.uv.index]]
+name    = "target-pypi"
+url     = "https://binrepo.target.com/artifactory/api/pypi/pypi-remote/simple"
+default = true
+
+[[tool.uv.index]]
+name = "target-pypi-backup"
+url  = "https://binrepo.target.com/artifactory/api/pypi/tgt-pypi/simple"
+
+[[tool.uv.index]]
+name = "idp-python"
+url  = "https://binrepo.target.com/artifactory/api/pypi/idp-python/simple"
+
+[[tool.uv.index]]
+name = "tgt-python"
+url  = "https://binrepo.target.com/artifactory/api/pypi/tgt-python/simple"
+
+[[tool.uv.index]]
+url = "https://binrepo.target.com/artifactory/api/pypi/mlops-pypi/simple"

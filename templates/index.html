@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Target AI Chatbot</h1>
+        <div id="chatbox">
+            <div class="message assistant-message">
+                Welcome! I'm here to help you. Ask me anything!
+            </div>
+        </div>
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Type your message and press Enter..." />
+            <button id="sendBtn">Send</button>
+        </div>
+        <div class="controls">
+            <button id="endSessionBtn">End Session</button>
+        </div>
+        <div id="emissionsInfo" class="emissions-info"></div>
+    </div>
+
+    <script>
+        const chatbox = document.getElementById('chatbox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const endSessionBtn = document.getElementById('endSessionBtn');
+        const emissionsInfo = document.getElementById('emissionsInfo');
+
+        let currentTestVariant = null
+
+        // Load test variant info on page load (silent - no UI display)
+        async function loadTestInfo() {
+            try {
+                const response = await fetch('/test_info');
+                const data = await response.json();
+                currentTestVariant = data.test_variant;
+                // Silent loading - no UI update for production
+            } catch (error) {
+                console.error('Error loading test info:', error);
+            }
+        }
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(isUser ? 'user-message' : 'assistant-message');
+            messageDiv.textContent = content;
+            chatbox.appendChild(messageDiv);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.classList.add('message', 'assistant-message', 'loading');
+            loadingDiv.textContent = 'Assistant is thinking...';
+            loadingDiv.id = 'loading-message';
+            chatbox.appendChild(loadingDiv);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loading-message');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const message = userInput.value
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage(message, true);
+            userInput.value = '';
+            
+            // Disable send button and show loading
+            sendBtn.disabled = true;
+            showLoading();
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (response.ok) {
+                    addMessage(data.response);
+                    if (data.test_variant) {
+                        currentTestVariant = data.test_variant;
+                    }
+                } else {
+                    addMessage(`Error: ${data.error || 'Something went wrong'}`, false);
+                }
+            } catch (error) {
+                hideLoading();
+                addMessage(`Error: ${error.message}`, false);
+            } finally {
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        async function endSession() {
+            try {
+                const response = await fetch('/end_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Handle different test variants
+                    const testVariant = data.test_variant || currentTestVariant;
+                    
+                    if (testVariant === 'A') {
+                        // Variant A: No emissions shown
+                        addMessage('Session ended. You can start a new conversation by sending another message.', false);
+                    } else if (testVariant === 'B' && data.emissions) {
+                        // Variant B: Show emissions without context
+                        emissionsInfo.innerHTML = `
+                            <strong>Session Ended</strong><br>
+                            Carbon Emissions: ${data.emissions.co2_grams.toFixed(4)} g CO2eq
+                        `;
+                        emissionsInfo.style.display = 'block';
+                        addMessage('Session ended. You can start a new conversation by sending another message.', false);
+                    } else if (testVariant === 'C' && data.emissions) {
+                        // Variant C: Show emissions with context
+                        let emissionsHTML = `
+                            <strong>Session Ended</strong><br>
+                            <strong>Environmental Impact:</strong><br>
+                            Carbon Emissions: ${data.emissions.co2_grams.toFixed(4)} g CO2eq
+                        `;
+                        
+                        if (data.emissions.context) {
+                            emissionsHTML += `
+                                <div class="emissions-context">
+                                    💡 ${data.emissions.context}
+                                </div>
+                            `;
+                        }
+                        
+                        emissionsInfo.innerHTML = emissionsHTML;
+                        emissionsInfo.style.display = 'block';
+                        addMessage('Session ended. You can start a new conversation by sending another message.', false);
+                    } else {
+                        addMessage('Session ended. You can start a new conversation by sending another message.', false);
+                    }
+                } else {
+                    addMessage(`Error ending session: ${data.error}`, false);
+                }
+            } catch (error) {
+                addMessage(`Error: ${error.message}`, false);
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        endSessionBtn.addEventListener('click', endSession);
+        
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !sendBtn.disabled) {
+                sendMessage();
+            }
+        });
+
+        // Initialize
+        loadTestInfo();
+        userInput.focus();
+    </script>
+{% endblock %}

@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    body { 
+        font-family: Arial, sans-serif; 
+        margin: 40px; 
+        background-color: #f5f5f5;
+    }
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .debug-controls {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .debug-controls h3 {
+        margin-top: 0;
+        color: #856404;
+    }
+    .debug-controls button {
+        margin: 5px;
+        padding: 8px 16px;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        background-color: #fff;
+    }
+    .debug-controls button:hover {
+        background-color: #f8f9fa;
+    }
+    .test-info {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        font-family: monospace;
+    }
+    .data-section {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+    .data-section h4 {
+        margin-top: 0;
+    }
+    .data-display {
+        background-color: white;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>🔧 Debug Mode - A/B/C Test Controls</h1>
+        
+        <div class="debug-controls">
+            <h3>Test Variant Controls</h3>
+            <button onclick="clearSession()">🔄 Clear Session</button>
+            <button onclick="forceVariant('A')">Force Variant A</button>
+            <button onclick="forceVariant('B')">Force Variant B</button>
+            <button onclick="forceVariant('C')">Force Variant C</button>
+            <button onclick="testRandom()">🎲 Test Randomization</button>
+        </div>
+        
+        <div class="test-info" id="testInfo">
+            Current Test Variant: {{ test_variant }}
+        </div>
+        
+        <div class="data-section">
+            <h4>📊 Data Analysis</h4>
+            <button onclick="loadDataSummary()">Load Data Summary</button>
+            <button onclick="loadAllData()">Load All Data</button>
+            <button onclick="loadCurrentImpact()">Current Session Impact</button>
+            <button onclick="loadEPAEquiv()">EPA Equivalencies</button>
+            <div id="dataDisplay" class="data-display">
+                Click a button above to load data...
+            </div>
+        </div>
+        
+        <div class="data-section">
+            <h4>🚀 Quick Actions</h4>
+            <button onclick="window.open('/', '_blank')">Open Main App</button>
+            <button onclick="exportData()">💾 Export Data</button>
+            <a href="/" style="margin-left: 10px;">← Back to Main App</a>
+        </div>
+    </div>
+
+    <script>
+        // Debug functions
+        async function clearSession() {
+            try {
+                const response = await fetch('/clear_session');
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                console.error('Error clearing session:', error);
+            }
+        }
+
+        async function forceVariant(variant) {
+            try {
+                const response = await fetch(`/force_variant/${variant}`);
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                console.error('Error forcing variant:', error);
+            }
+        }
+
+        async function testRandom() {
+            try {
+                const response = await fetch('/test_random');
+                const data = await response.json();
+                console.log('Random test results:', data);
+                alert(`Random test results:\nA: ${data.counts.A}\nB: ${data.counts.B}\nC: ${data.counts.C}`);
+            } catch (error) {
+                console.error('Error testing random:', error);
+            }
+        }
+
+        async function loadDataSummary() {
+            try {
+                const response = await fetch('/data_summary');
+                const data = await response.json();
+                document.getElementById('dataDisplay').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Error loading data summary:', error);
+            }
+        }
+
+        async function loadAllData() {
+            try {
+                const response = await fetch('/view_data');
+                const data = await response.json();
+                document.getElementById('dataDisplay').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Error loading all data:', error);
+            }
+        }
+
+        async function loadCurrentImpact() {
+            try {
+                const response = await fetch('/current_impact');
+                const data = await response.json();
+                document.getElementById('dataDisplay').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Error loading current impact:', error);
+            }
+        }
+
+        async function loadEPAEquiv() {
+            try {
+                const response = await fetch('/epa_equivalencies');
+                const data = await response.json();
+                document.getElementById('dataDisplay').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Error loading EPA equivalencies:', error);
+            }
+        }
+
+        async function exportData() {
+            try {
+                const response = await fetch('/export_data');
+                const data = await response.json();
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ab_test_data_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error exporting data:', error);
+            }
+        }
+    </script>
+{% endblock %}
