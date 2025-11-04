@@ -6,6 +6,32 @@
 {% block content %}
     <div class="container">
         <h1>Chatbot</h1>
+        <p>
+    Feel free to be creative in your questions within the parameters set. 
+
+   <ul>
+
+   <li> 1. A question about a recreational pastime, hobby, or special interest. </li>
+
+Ex: “What’s the best type of yarn to use to crochet a sweater?”
+
+  <li> 2.  A question about travel logistics or other planning type topics. </li>
+
+Ex. “If I am going to New York from January 27-Feb 4, help me plan a travel itinerary for my dates.” 
+
+    <li>3. A long technical question. </li>
+
+Ex. “I can’t install Node JS on my computer because I keep getting the following error: <error message>. Help me fix it.”
+
+<li>4.  A question about a piece of writing you want to be edited. </li>
+
+Ex. Pasting the contents of an email you want to formalize in tone. 
+
+<li> 5. A question about summarization of a topic, book, report, paper, or other longer material. </li>
+
+Ex. “Summarize the plot of Lord of the Rings for me.”
+</ul>
+        </p>
         <div id="chatbox">
             <div class="message assistant-message">
                 Welcome! I'm here to help you. Ask me anything!
@@ -125,7 +151,7 @@
                     
                     if (testVariant === 'A') {
                         // Variant A: No emissions shown
-                        addMessage('Session ended. You can start a new conversation by sending another message.', false);
+                        addMessage('Session ended.  Navigate back to the survey.', false);
                     } else if (testVariant === 'B' && data.emissions) {
                         // Variant B: Show emissions without context
                         emissionsInfo.innerHTML = `
@@ -133,13 +159,14 @@
                             Carbon Emissions: ${data.emissions.co2_grams.toFixed(4)} g CO2eq
                         `;
                         emissionsInfo.style.display = 'block';
-                        addMessage('Session ended. You can start a new conversation by sending another message.', false);
+                        addMessage('Session ended.  Navigate back to the survey.', false);
                     } else if (testVariant === 'C' && data.emissions) {
                         // Variant C: Show emissions with context
                         let emissionsHTML = `
                             <strong>Session Ended</strong><br>
                             <strong>Environmental Impact:</strong><br>
                             Carbon Emissions: ${data.emissions.co2_grams.toFixed(4)} g CO2eq
+                            Navigate back to the survey.
                         `;
                         
                         if (data.emissions.context) {
@@ -152,9 +179,9 @@
                         
                         emissionsInfo.innerHTML = emissionsHTML;
                         emissionsInfo.style.display = 'block';
-                        addMessage('Session ended. You can start a new conversation by sending another message.', false);
+                        addMessage('Session ended. Navigate back to the survey', false);
                     } else {
-                        addMessage('Session ended. You can start a new conversation by sending another message.', false);
+                        addMessage('Session ended.  Navigate back to the survey. ', false);
                     }
                 } else {
                     addMessage(`Error ending session: ${data.error}`, false);
