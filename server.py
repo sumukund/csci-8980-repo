@@ -9,6 +9,8 @@ from db import insert_carbon_test_session, init_db
 from dotenv import load_dotenv
 import os
 from openai import AzureOpenAI
+import requests
+
 load_dotenv()
 
 
@@ -215,8 +217,6 @@ def chat():
         # Add user message
         messages.append({"role": "user", "content": user_message})
         
-
-
         client = AzureOpenAI(
         api_version=api_version,
         azure_endpoint=endpoint,
@@ -225,21 +225,9 @@ def chat():
 
         chat_response = client.chat.completions.create(
         messages=messages,
-        max_completion_tokens=1000,
+        max_completion_tokens=3000,
         model=deployment
         )
-
-        # # Call OpenAI API
-        # chat_response = openai_client.chat.completions.create(
-        #     model="gpt-4o",
-        #     messages=messages,
-        #     temperature=1,
-        #     max_tokens=4095,
-        #     top_p=1,
-        #     frequency_penalty=0.5,
-        #     presence_penalty=0,
-        #     stream=False
-        # )
         
         # Extract assistant's reply
         assistant_reply = chat_response.choices[0].message.content or "No response"
