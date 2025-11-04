@@ -33,5 +33,5 @@ You can use `.env.example` as a template.
 python server.py
 ```
 
-#### Production (Render/Heroku)
+#### Production (Render)
 ```bash

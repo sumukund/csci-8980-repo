@@ -1,16 +1,25 @@
 
-import json
-import requests
 from flask import Flask, render_template, request, jsonify, session
 from token_manager import get_openai_client
 import uuid
 import random
-import os
 from datetime import datetime
 from ecologits import EcoLogits
 from db import insert_carbon_test_session, init_db
 from dotenv import load_dotenv
+import os
+from openai import AzureOpenAI
 load_dotenv()
+
+
+endpoint = "https://aimaker-openai.openai.azure.com/"
+model_name = "o4-mini"
+deployment = "o4-mini"
+
+subscription_key = os.getenv('OPENAI_API_KEY')
+api_version = "2024-12-01-preview"
+
+
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 app = Flask(__name__)
@@ -206,17 +215,31 @@ def chat():
         # Add user message
         messages.append({"role": "user", "content": user_message})
         
-        # Call OpenAI API
-        chat_response = openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            temperature=1,
-            max_tokens=4095,
-            top_p=1,
-            frequency_penalty=0.5,
-            presence_penalty=0,
-            stream=False
+
+
+        client = AzureOpenAI(
+        api_version=api_version,
+        azure_endpoint=endpoint,
+        api_key=subscription_key,
         )
+
+        chat_response = client.chat.completions.create(
+        messages=messages,
+        max_completion_tokens=1000,
+        model=deployment
+        )
+
+        # # Call OpenAI API
+        # chat_response = openai_client.chat.completions.create(
+        #     model="gpt-4o",
+        #     messages=messages,
+        #     temperature=1,
+        #     max_tokens=4095,
+        #     top_p=1,
+        #     frequency_penalty=0.5,
+        #     presence_penalty=0,
+        #     stream=False
+        # )
         
         # Extract assistant's reply
         assistant_reply = chat_response.choices[0].message.content or "No response"
